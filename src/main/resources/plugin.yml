@@ -1,0 +1,16 @@
+name: WreckRepairs
+version: '${project.version}'
+main: me.clutchmasterftw.wreckrepairs.WreckRepairs
+api-version: '1.19'
+depend: [ItemsAdder]
+commands:
+  wreckrepairs:
+    description: Used to give a player a WreckRepairs anvil, or access/open the WreckRepairs anvil menu from anywhere.
+    usage: /wreckrepairs [open/give] [player (in a give use case)]
+permissions:
+  wreckrepairs.general:
+    description: Gives general access to WreckRepairs commands.
+  wreckrepairs.give:
+    description: Allows a player to give someone a WreckRepairs anvil.
+  wreckrepairs.access:
+    description: Allows a player to access/open the WreckRepairs anvil menu from anywhere.
