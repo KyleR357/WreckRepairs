@@ -3,30 +3,23 @@ package me.clutchmasterftw.wreckrepairs.events;
 import dev.lone.itemsadder.api.CustomStack;
 import me.clutchmasterftw.wreckrepairs.WreckRepairs;
 import me.clutchmasterftw.wreckrepairs.WreckRepairsGUIHolder;
-import me.clutchmasterftw.wreckrepairs.utilities.Utilities;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
-import org.bukkit.Material;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
-import org.bukkit.event.inventory.ClickType;
-import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.inventory.InventoryMoveItemEvent;
+import org.bukkit.event.inventory.*;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.inventory.meta.SkullMeta;
 
 import java.util.*;
 
-public class OnAnvilOpen implements Listener {
+public class OnAnvilAction implements Listener {
     private final FileConfiguration file = WreckRepairs.getPlugin().getConfig();
 
     @EventHandler
@@ -94,9 +87,10 @@ public class OnAnvilOpen implements Listener {
             int clickedSlot = e.getRawSlot();
             int expNeeded;
             Player player = (Player) e.getWhoClicked();
-            if(clickedSlot == 4) {
+            ClickType typeOfClick = e.getClick();
+            if(clickedSlot == 4 && typeOfClick != ClickType.SHIFT_LEFT) {
                 //Raw item slot
-                player.sendMessage("YOU CLICKED SLOT 5 IN A WRECKREPAIRS ANVIL!!!");
+//                player.sendMessage("YOU CLICKED SLOT 5 IN A WRECKREPAIRS ANVIL!!!");
                 //Remember to import hastepotion btw
                 ItemStack rawItem = e.getCursor();
                 if(rawItem != null) {
@@ -108,12 +102,12 @@ public class OnAnvilOpen implements Listener {
                             int rawItemMaxDurability = getItemMaxDurability(rawItem);
                             rawItemDamage = rawItemMaxDurability - rawItemDurability;
 
-                            player.sendMessage("This item needs " + ChatColor.DARK_RED + ChatColor.BOLD + String.valueOf(rawItemDamage) + ChatColor.RESET + " durability.");
+//                            player.sendMessage("This item needs " + ChatColor.DARK_RED + ChatColor.BOLD + String.valueOf(rawItemDamage) + ChatColor.RESET + " durability.");
                         } else {
                             //Vanilla item
                             rawItemDamage = getItemDurability(rawItem);
 
-                            player.sendMessage("This item needs " + ChatColor.DARK_RED + ChatColor.BOLD + String.valueOf(rawItemDamage) + ChatColor.RESET + " durability.");
+//                            player.sendMessage("This item needs " + ChatColor.DARK_RED + ChatColor.BOLD + String.valueOf(rawItemDamage) + ChatColor.RESET + " durability.");
                         }
                         expNeeded = rawItemDamage / 3;
                         if(expNeeded == 0 && rawItemDamage > 0) {
@@ -131,13 +125,20 @@ public class OnAnvilOpen implements Listener {
                             expBottle.setItemMeta(expBottleMeta);
                             inventory.setItem(1, expBottle);
 
-                            if(player.getTotalExperience() >= expNeeded) {
+                            int currentLevels = player.getLevel();
+                            float currentLevelProgress = player.getExp();
+                            int totalEXP = levelsToEXP(currentLevels, currentLevelProgress);
+//                            player.sendMessage("currentLevels = " + String.valueOf(currentLevels));
+//                            player.sendMessage("currentLevelProgress = " + String.valueOf(currentLevelProgress));
+//                            player.sendMessage("totalEXP = " + String.valueOf(totalEXP));
+
+                            if(totalEXP >= expNeeded) {
                                 ItemStack accept = new ItemStack(Material.LIME_STAINED_GLASS_PANE);
                                 ItemMeta acceptMeta = accept.getItemMeta();
                                 acceptMeta.setDisplayName(ChatColor.GREEN + "" + ChatColor.BOLD + "Repair");
                                 ArrayList<String> acceptLore = new ArrayList<String>();
-                                acceptLore.add("Repair this item with the specified");
-                                acceptLore.add("amount of EXP required.");
+                                acceptLore.add(ChatColor.RESET + "" + ChatColor.WHITE + "Repair this item with the specified");
+                                acceptLore.add(ChatColor.RESET + "" + ChatColor.WHITE + "amount of EXP required.");
                                 acceptMeta.setLore(acceptLore);
                                 accept.setItemMeta(acceptMeta);
                                 inventory.setItem(7, accept);
@@ -146,8 +147,8 @@ public class OnAnvilOpen implements Listener {
                                 ItemMeta denyMeta = deny.getItemMeta();
                                 denyMeta.setDisplayName(ChatColor.RED + "" + ChatColor.BOLD + "Not Enough Experience");
                                 ArrayList<String> denyLore = new ArrayList<String>();
-                                denyLore.add("You don't have enough EXP to repair");
-                                denyLore.add("this item.");
+                                denyLore.add(ChatColor.RESET + "" + ChatColor.WHITE + "You don't have enough EXP to repair");
+                                denyLore.add(ChatColor.RESET + "" + ChatColor.WHITE + "this item.");
                                 denyMeta.setLore(denyLore);
                                 deny.setItemMeta(denyMeta);
                                 inventory.setItem(7, deny);
@@ -155,7 +156,7 @@ public class OnAnvilOpen implements Listener {
                         }
                     } else {
                         //Item is invalid (doesn't have durability)
-                        player.sendMessage("Invalid item to repair");
+//                        player.sendMessage("Invalid item to repair");
                         ItemStack glass = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
                         inventory.setItem(1, glass);
                         inventory.setItem(7, glass);
@@ -169,7 +170,7 @@ public class OnAnvilOpen implements Listener {
                 if(slotType == Material.LIME_STAINED_GLASS_PANE) {
                     //The below code is copied from above and COULD be optimized, I'm just lazy :')
                     ItemStack rawItem = inventory.getItem(4);
-                    int rawItemDamage;
+                    int rawItemDamage;//x
                     if(isCustomItem(rawItem)) {
                         //Custom item
                         int rawItemDurability = getItemDurability(rawItem);
@@ -186,23 +187,110 @@ public class OnAnvilOpen implements Listener {
 
 
 
-                    int remainingEXP = player.getTotalExperience() - expNeeded;
-                    player.setExp(10);
+                    int currentLevels = player.getLevel();
+                    float currentLevelProgress = player.getExp();
+                    int totalEXP = levelsToEXP(currentLevels, currentLevelProgress);
+
+//                    player.sendMessage("totalEXP = " + String.valueOf(totalEXP));
+
+                    int remainingEXP = totalEXP - expNeeded;
+                    int[] newEXP = expToLevels(remainingEXP);
+                    float levelProgress = (float) newEXP[1] / newEXP[2];
+                    player.setLevel(newEXP[0]);
+                    player.setExp(levelProgress);//Ranges from 0 to 1
+
+                    //Set the item to its repaired state
+                    ItemStack repairedItem = repairItem(rawItem);
+                    inventory.setItem(4, repairedItem);
+
+                    //Turn everything inside of the inventory back into the default glass
+                    ItemStack glass = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
+                    List<Integer> placeholderSlots = Arrays.asList(0, 1, 2, 3, 5, 6, 7, 8);
+                    for(int inventorySlot:placeholderSlots) {
+                        inventory.setItem(inventorySlot, glass);
+                    }
+
+                    //Play anvil repair sound
+                    double randomNumber = Math.random();
+                    player.playSound(player.getLocation(), Sound.BLOCK_ANVIL_USE, 1f, (float) randomNumber);
+
+//                    player.sendMessage("rawItemDamage = " + String.valueOf(rawItemDamage));
+//                    player.sendMessage("level = " + String.valueOf(expToLevels(remainingEXP)[0]) + "remaining" + String.valueOf(expToLevels(remainingEXP)[1]));
+//                    player.sendMessage("getTotalExperience = " + String.valueOf(player.getTotalExperience()));
+//                    player.sendMessage("expNeeded = " + String.valueOf(expNeeded));
+//                    player.sendMessage("remainingEXP = " + String.valueOf(remainingEXP));
                 }
             } else {
                 //Not raw item slot
-                if(clickedSlot < 9) {
+                if(clickedSlot < 9 && clickedSlot != 4) {
                     //Any other item slot
                     e.setCancelled(true);
                     //Need to check here after the item has been placed to make slot 8 (7) to a shift clickable (and clickable) slot. Additionally, if the player exits the anvil with their item in it (not taking it out), the item should drop onto the ground or be placed back into their inventory
                 } else {
-                    ClickType typeOfClick = e.getClick();
                     if(typeOfClick == ClickType.SHIFT_LEFT) {
-                        player.sendMessage("There was a shift click.");
+//                        player.sendMessage("There was a shift click.");
 
-                        e.setCancelled(true);
+                        if(clickedSlot == 4 && inventory.getItem(4) != null) {
+                            ItemStack glass = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
+                            List<Integer> placeholderSlots = Arrays.asList(0, 1, 2, 3, 5, 6, 7, 8);
+                            for(int slot:placeholderSlots) {
+                                inventory.setItem(slot, glass);
+                            }
+                        } else {
+                            e.setCancelled(true);
+                        }
                     }
                 }
+            }
+        }
+
+        InventoryAction action = e.getAction();
+        if (action == InventoryAction.COLLECT_TO_CURSOR && e.getSlot() == 4) {
+            ItemStack glass = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
+            List<Integer> placeholderSlots = Arrays.asList(0, 1, 2, 3, 5, 6, 7, 8);
+            for(int slot:placeholderSlots) {
+                inventory.setItem(slot, glass);
+            }
+
+            e.setCancelled(true);
+        }
+    }
+
+    @EventHandler
+    public void onInventoryDrag(InventoryDragEvent e) {
+        Inventory inventory = e.getInventory();
+        if(inventory.getHolder() instanceof WreckRepairsGUIHolder) {
+            boolean inInventory = true;
+            for(int i = 0; i < 9; i++) {
+                if (e.getInventorySlots().contains(i)) {
+                    inInventory = false;
+                }
+            }
+
+            if(!inInventory) {
+                e.setCancelled(true);
+            }
+        }
+    }
+
+    @EventHandler
+    public void onInventoryClose(InventoryCloseEvent e) {
+        Inventory inventory = e.getInventory();
+        if(inventory.getHolder() instanceof WreckRepairsGUIHolder && inventory.getItem(4) != null) {
+            Player player = (Player) e.getPlayer();
+
+            ItemStack item = inventory.getItem(4);
+            boolean foundSlot = false;
+            for(int i = 0; i < 36; i++) {
+                if(player.getInventory().getItem(i) == null) {
+                    player.getInventory().setItem(i, item);
+                    foundSlot = true;
+                    break;
+                }
+            }
+            if(!foundSlot) {
+                //Could not find a valid slot in the players inventory for the item. Proceeding by dropping the item on the ground.
+                player.getWorld().dropItemNaturally(player.getLocation(), item);
             }
         }
     }
@@ -239,27 +327,39 @@ public class OnAnvilOpen implements Listener {
         return maxDurability;
     }
 
+    public ItemStack repairItem(ItemStack item) {
+        CustomStack customStack = CustomStack.byItemStack(item);
+        if(customStack == null) {
+            ItemMeta meta = item.getItemMeta();
+            Damageable damageable = (Damageable) meta;
+            damageable.setDamage(0);
+
+            item.setItemMeta(meta);
+
+            return item;
+        } else {
+            int maxDurability = getItemMaxDurability(item);
+            customStack.setDurability(maxDurability);
+
+            return customStack.getItemStack();
+        }
+    }
+
     public int[] expToLevels(int exp) {
-        //Levels 1-15: +2 (starts from 7)
+        //Levels 0-15: +2 (starts from 7)
         //Levels 16-30: +5 (16->17)
         //Levels 31+: +9 (31->32)
         int levels = 0;
         int remaining = 0;
+        int levelProgress = 7;
         while(exp > 0) {
-            if(levels == 0) {
-                if(exp < 7) {
-                    remaining = exp;
-                    break;
-                } else {
-                    exp -= 7;
-                    levels++;
-                }
-            } else if(levels <= 16) {
+            if(levels <= 16) {
                 if(exp >= 7 + (levels * 2)) {
                     exp -= 7 + (levels * 2);
                     levels++;
                 } else {
                     remaining = exp;
+                    levelProgress = 7 + (levels * 2);
                     break;
                 }
             } else if(levels <= 31) {
@@ -268,6 +368,7 @@ public class OnAnvilOpen implements Listener {
                     levels++;
                 } else {
                     remaining = exp;
+                    levelProgress = 37 + ((levels - 16) * 5);
                     break;
                 }
             } else {
@@ -276,14 +377,40 @@ public class OnAnvilOpen implements Listener {
                     levels++;
                 } else {
                     remaining = exp;
+                    levelProgress = 112 + ((levels - 31) * 9);
                     break;
                 }
             }
         }
-        if(exp == 0 && levels == 0) {
-            levels++;
-        }
+        return new int[]{levels, remaining, levelProgress};
+    }
 
-        return new int[]{levels, remaining};
+    public int levelsToEXP(int levels, float progress) {
+        int exp = 0;
+
+        if(progress > 0) {
+            if(levels >= 31) {
+                exp += (int) ((112 + ((levels - 30) * 9)) * progress);
+            } else if(levels >= 16) {
+                exp += (int) ((37 + ((levels - 15) * 5)) * progress);
+            } else if(levels != 0) {
+                exp += (int) ((7 + (levels * 2)) * progress);
+            } else {
+                exp += (int) (7 * progress);
+            }
+        }
+        //https://minecraft.fandom.com/wiki/Experience#Leveling_up
+
+        while(levels >= 0) {
+            if(levels >= 31) {
+                exp += 112 + ((levels - 31) * 9);
+            } else if(levels >= 16) {
+                exp += 37 + ((levels - 16) * 5);
+            } else if(levels != 0) {
+                exp += 7 + ((levels - 1) * 2);
+            }
+            levels--;
+        }
+        return exp;
     }
 }

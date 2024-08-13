@@ -1,7 +1,7 @@
 package me.clutchmasterftw.wreckrepairs.commands;
 
 import me.clutchmasterftw.wreckrepairs.WreckRepairsAnvil;
-import me.clutchmasterftw.wreckrepairs.events.OnAnvilOpen;
+import me.clutchmasterftw.wreckrepairs.events.OnAnvilAction;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
@@ -55,7 +55,7 @@ public class WreckRepairsCommand implements CommandExecutor {
         } else {
             if((sender instanceof Player && args[0].equals("open")) && sender.hasPermission("wreckrepairs.access")) {
                 sender.sendMessage("Opened WreckRepairs anvil menu.");
-                OnAnvilOpen.openGUI((Player) sender);
+                OnAnvilAction.openGUI((Player) sender);
             } else {
                 if (sender instanceof Player) {
                     // A player executed this command
