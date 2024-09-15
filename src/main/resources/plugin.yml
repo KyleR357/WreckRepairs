@@ -8,6 +8,8 @@ commands:
     description: Used to give a player a WreckRepairs anvil, or access/open the WreckRepairs anvil menu from anywhere.
     usage: /wreckrepairs [open/give] [player (in a give use case)]
 permissions:
+  wreckrepairs.admin:
+    description: Gives admin permissions for WreckRepairs.
   wreckrepairs.general:
     description: Gives general access to WreckRepairs commands.
   wreckrepairs.give:
