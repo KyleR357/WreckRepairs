@@ -53,10 +53,6 @@ public class OnAnvilPlaceOrDestroy implements Listener {
     @EventHandler
     public void onBlockBreak(BlockBreakEvent e) {
         Player player = e.getPlayer();
-        if(!player.hasPermission("wreckrepairs.admin")) {
-            player.sendMessage("&cYou don't have permission to destroy WreckRepairs anvils.");
-            return;
-        }
         Block block = e.getBlock();
         if(block.getType() != Material.ANVIL) return;
 
@@ -73,6 +69,11 @@ public class OnAnvilPlaceOrDestroy implements Listener {
             Location locationFromMap = new Location(Bukkit.getWorld("world"), x, y, z);
 
             if (location.equals(locationFromMap)) {
+                if(!player.hasPermission("wreckrepairs.admin")) {
+                    player.sendMessage(ChatColor.RED + "You don't have permission to destroy WreckRepairs anvils.");
+                    return;
+                }
+
                 player.sendMessage("You've destroyed a WreckRepairs Anvil.");
                 anvilLocations.remove(i);
 
