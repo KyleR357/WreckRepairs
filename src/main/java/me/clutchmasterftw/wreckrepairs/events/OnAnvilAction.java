@@ -3,6 +3,7 @@ package me.clutchmasterftw.wreckrepairs.events;
 import dev.lone.itemsadder.api.CustomStack;
 import me.clutchmasterftw.wreckrepairs.WreckRepairs;
 import me.clutchmasterftw.wreckrepairs.WreckRepairsGUIHolder;
+import me.clutchmasterftw.wreckrepairs.utilities.Experience;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -53,24 +54,6 @@ public class OnAnvilAction implements Listener {
     public static void openGUI(Player player) {
         Inventory inventory = Bukkit.createInventory(new WreckRepairsGUIHolder(null), 9, "Repair Items");
 
-//        ItemStack item = new ItemStack(Material.WOODEN_SHOVEL);
-//        inventory.setItem(0, item);
-
-        //{Count:1b,id:"minecraft:player_head",tag:{SkullOwner:{Id:[I;67411088,-739686879,-1666252800,178950440],Properties:{textures:[{Value:"eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNzE4MDc5ZDU4NDc0MTZhYmY0NGU4YzJmZWMyY2NkNDRmMDhkNzM2Y2E4ZTUxZjk1YTQzNmQ4NWY2NDNmYmMifX19"}]}},display:{Name:'{"extra":[{"bold":false,"italic":false,"underlined":false,"strikethrough":false,"obfuscated":false,"color":"blue","text":"Yellow Question Mark"}],"text":""}'}}}
-
-
-//        ItemStack helpHead = Utilities.getCustomTextureHead("eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNzE4MDc5ZDU4NDc0MTZhYmY0NGU4YzJmZWMyY2NkNDRmMDhkNzM2Y2E4ZTUxZjk1YTQzNmQ4NWY2NDNmYmMifX19");
-//        ItemMeta helpHeadMeta = helpHead.getItemMeta();
-//
-//        helpHeadMeta.setDisplayName("§9Yellow Question Mark");
-//        List<String> helpHeadLore = new ArrayList<String>();
-//        helpHeadLore.add("This is a");
-//        helpHeadLore.add("TEST :)");
-//
-//        helpHeadMeta.setLore(helpHeadLore);
-//
-//        helpHead.setItemMeta(helpHeadMeta);
-
         ItemStack glass = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
         List<Integer> placeholderSlots = Arrays.asList(0, 1, 2, 3, 5, 6, 7, 8);
         for(int slot:placeholderSlots) {
@@ -90,8 +73,6 @@ public class OnAnvilAction implements Listener {
             ClickType typeOfClick = e.getClick();
             if(clickedSlot == 4 && typeOfClick != ClickType.SHIFT_LEFT) {
                 //Raw item slot
-//                player.sendMessage("YOU CLICKED SLOT 5 IN A WRECKREPAIRS ANVIL!!!");
-                //Remember to import hastepotion btw
                 ItemStack rawItem = e.getCursor();
                 if(rawItem != null) {
                     if(itemHasDurability(rawItem)) {
@@ -115,22 +96,20 @@ public class OnAnvilAction implements Listener {
                         }
                         if(expNeeded > 0) {
                             //Item is damaged
-                            ItemStack expBottle = new ItemStack(Material.EXPERIENCE_BOTTLE, (expToLevels(expNeeded)[0] > 0 ? expToLevels(expNeeded)[0] : 1));
+//                            ItemStack expBottle = new ItemStack(Material.EXPERIENCE_BOTTLE, (expToLevels(expNeeded)[0] > 0 ? expToLevels(expNeeded)[0] : 1));
+                            int levelsRequired = ((int) Experience.getLevelFromExp(Experience.getExp(player))) - ((int) Experience.getLevelFromExp(Experience.getExp(player) - expNeeded));
+                            ItemStack expBottle = new ItemStack(Material.EXPERIENCE_BOTTLE, (levelsRequired > 0 ? levelsRequired : 1));
                             ItemMeta expBottleMeta = expBottle.getItemMeta();
                             expBottleMeta.setDisplayName(ChatColor.YELLOW + "" + ChatColor.BOLD + "Experience Required");
                             ArrayList<String> expBottleLore = new ArrayList<String>();
                             expBottleLore.add(ChatColor.RESET + "" + ChatColor.WHITE + "Repairing this item will cost " + ChatColor.DARK_GREEN + ChatColor.BOLD + String.valueOf(expNeeded) + ChatColor.RESET + ChatColor.WHITE + " EXP");
-                            expBottleLore.add(ChatColor.RESET + "" + ChatColor.WHITE + "(approx. " + ChatColor.DARK_GREEN + ChatColor.BOLD + String.valueOf(expToLevels(expNeeded)[0] > 0 ? expToLevels(expNeeded)[0] : 1) + ChatColor.RESET + ChatColor.WHITE + " level" + (expToLevels(expNeeded)[0] != 1 ? "s" : "") + ").");
+//                            expBottleLore.add(ChatColor.RESET + "" + ChatColor.WHITE + "(approx. " + ChatColor.DARK_GREEN + ChatColor.BOLD + String.valueOf(expToLevels(expNeeded)[0] > 0 ? expToLevels(expNeeded)[0] : 1) + ChatColor.RESET + ChatColor.WHITE + " level" + (expToLevels(expNeeded)[0] != 1 ? "s" : "") + ").");
+                            expBottleLore.add(ChatColor.RESET + "" + ChatColor.WHITE + "(approx. " + ChatColor.DARK_GREEN + ChatColor.BOLD + (levelsRequired > 0 ? levelsRequired : "<1") + ChatColor.RESET + ChatColor.WHITE + " level" + (levelsRequired != 1 ? "s" : "") + ").");
                             expBottleMeta.setLore(expBottleLore);
                             expBottle.setItemMeta(expBottleMeta);
                             inventory.setItem(1, expBottle);
 
-                            int currentLevels = player.getLevel();
-                            float currentLevelProgress = player.getExp();
-                            int totalEXP = levelsToEXP(currentLevels, currentLevelProgress);
-//                            player.sendMessage("currentLevels = " + String.valueOf(currentLevels));
-//                            player.sendMessage("currentLevelProgress = " + String.valueOf(currentLevelProgress));
-//                            player.sendMessage("totalEXP = " + String.valueOf(totalEXP));
+                            int totalEXP = Experience.getExp(player);
 
                             if(totalEXP >= expNeeded) {
                                 ItemStack accept = new ItemStack(Material.LIME_STAINED_GLASS_PANE);
@@ -186,18 +165,7 @@ public class OnAnvilAction implements Listener {
                     }
 
 
-
-                    int currentLevels = player.getLevel();
-                    float currentLevelProgress = player.getExp();
-                    int totalEXP = levelsToEXP(currentLevels, currentLevelProgress);
-
-//                    player.sendMessage("totalEXP = " + String.valueOf(totalEXP));
-
-                    int remainingEXP = totalEXP - expNeeded;
-                    int[] newEXP = expToLevels(remainingEXP);
-                    float levelProgress = (float) newEXP[1] / newEXP[2];
-                    player.setLevel(newEXP[0]);
-                    player.setExp(levelProgress);//Ranges from 0 to 1
+                    Experience.changeExp(player, -expNeeded);
 
                     //Set the item to its repaired state
                     ItemStack repairedItem = repairItem(rawItem);
@@ -216,7 +184,6 @@ public class OnAnvilAction implements Listener {
 
 //                    player.sendMessage("rawItemDamage = " + String.valueOf(rawItemDamage));
 //                    player.sendMessage("level = " + String.valueOf(expToLevels(remainingEXP)[0]) + "remaining" + String.valueOf(expToLevels(remainingEXP)[1]));
-//                    player.sendMessage("getTotalExperience = " + String.valueOf(player.getTotalExperience()));
 //                    player.sendMessage("expNeeded = " + String.valueOf(expNeeded));
 //                    player.sendMessage("remainingEXP = " + String.valueOf(remainingEXP));
                 }
@@ -343,74 +310,5 @@ public class OnAnvilAction implements Listener {
 
             return customStack.getItemStack();
         }
-    }
-
-    public int[] expToLevels(int exp) {
-        //Levels 0-15: +2 (starts from 7)
-        //Levels 16-30: +5 (16->17)
-        //Levels 31+: +9 (31->32)
-        int levels = 0;
-        int remaining = 0;
-        int levelProgress = 7;
-        while(exp > 0) {
-            if(levels <= 16) {
-                if(exp >= 7 + (levels * 2)) {
-                    exp -= 7 + (levels * 2);
-                    levels++;
-                } else {
-                    remaining = exp;
-                    levelProgress = 7 + (levels * 2);
-                    break;
-                }
-            } else if(levels <= 31) {
-                if(exp >= 37 + ((levels - 16) * 5)) {
-                    exp -= 37 + ((levels - 16) * 5);
-                    levels++;
-                } else {
-                    remaining = exp;
-                    levelProgress = 37 + ((levels - 16) * 5);
-                    break;
-                }
-            } else {
-                if(exp >= 112 + ((levels - 31) * 9)) {
-                    exp -= 112 + ((levels - 31) * 9);
-                    levels++;
-                } else {
-                    remaining = exp;
-                    levelProgress = 112 + ((levels - 31) * 9);
-                    break;
-                }
-            }
-        }
-        return new int[]{levels, remaining, levelProgress};
-    }
-
-    public int levelsToEXP(int levels, float progress) {
-        int exp = 0;
-
-        if(progress > 0) {
-            if(levels >= 31) {
-                exp += (int) ((112 + ((levels - 30) * 9)) * progress);
-            } else if(levels >= 16) {
-                exp += (int) ((37 + ((levels - 15) * 5)) * progress);
-            } else if(levels != 0) {
-                exp += (int) ((7 + (levels * 2)) * progress);
-            } else {
-                exp += (int) (7 * progress);
-            }
-        }
-        //https://minecraft.fandom.com/wiki/Experience#Leveling_up
-
-        while(levels >= 0) {
-            if(levels >= 31) {
-                exp += 112 + ((levels - 31) * 9);
-            } else if(levels >= 16) {
-                exp += 37 + ((levels - 16) * 5);
-            } else if(levels != 0) {
-                exp += 7 + ((levels - 1) * 2);
-            }
-            levels--;
-        }
-        return exp;
     }
 }
